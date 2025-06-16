@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.DoubleSummaryStatistics;
+import java.util.LongSummaryStatistics;
 
 public class FileSizeAggregator {
     private static final double BYTES_PER_MEGABYTE = 1024.0 * 1024.0;
@@ -26,12 +26,12 @@ public class FileSizeAggregator {
             List<FileRecord> videoFiles = CsvHandler.readFromCsv(INPUT_FILENAME);
 
             // Group and Compute Statistics using Java Streams.
-            Map<String, DoubleSummaryStatistics> analyticsMap = videoFiles.stream()
+            Map<String, LongSummaryStatistics> analyticsMap = videoFiles.stream()
                 .collect(Collectors.groupingBy(
                     // The function to determine the group key for each video file
                     videoFile -> createGroupKeyFromPath(videoFile.getFilePath()),
                     // The downstream collector to perform the aggregation on each group
-                    Collectors.summarizingDouble(videoFile -> videoFile.getFileSize() / BYTES_PER_MEGABYTE)
+                    Collectors.summarizingLong(videoFile -> videoFile.getFileSize() / BYTES_PER_MEGABYTE)
                 ));
 
             // Write the aggregated results to the output CSV.
@@ -44,16 +44,18 @@ public class FileSizeAggregator {
     private static String createGroupKeyFromPath(String filePath) {
         Path path = Paths.get(filePath);
         String name;
-
+        
+        // A path can have both creator and client prefixes.
+        // We find the first prefix that matches and return the client or creator name.
         for (Path part : path) {
             String partStr = part.toString();
             if (partStr.startsWith(CREATOR_PREFIX)) {
                 name = partStr.substring(CREATOR_PREFIX.length());
+                return name;
             } else if (partStr.startsWith(CLIENT_PREFIX)) {
                 name = partStr.substring(CLIENT_PREFIX.length());
+                return name;
             }
         }
-
-        return name;
     }
 }

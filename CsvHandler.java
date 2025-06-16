@@ -13,7 +13,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.DoubleSummaryStatistics;
+import java.util.LongSummaryStatistics;
 
 public class CsvHandler {
     public static List<FileRecord> readFromCsv(String inputFilePath) throws IOException {
@@ -30,7 +30,7 @@ public class CsvHandler {
         return records;
     }
 
-    public static void writeToCsv(Map<GroupKey, DoubleSummaryStatistics> analyticsMap, String outputFilePath) throws IOException {
+    public static void writeToCsv(Map<String, LongSummaryStatistics> analyticsMap, String outputFilePath) throws IOException {
         // Define output headers
         String[] headers = {"creator or client name", "totalFileSize (MB)", "fileSizeMin (MB)", "fileSizeAverage (MB)"};
 
@@ -38,16 +38,16 @@ public class CsvHandler {
              CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(headers))) {
 
             // Iterate through the map and write each entry as a row
-            for (Map.Entry<String, DoubleSummaryStatistics> entry : analyticsMap.entrySet()) {
+            for (Map.Entry<String, LongSummaryStatistics> entry : analyticsMap.entrySet()) {
                 String key = entry.getKey();
-                DoubleSummaryStatistics stats = entry.getValue();
+                LongSummaryStatistics stats = entry.getValue();
 
                 // Write to CSV file
                 csvPrinter.printRecord(
                     key.name(),
-                    String.format("%.2f", stats.getSum()),
-                    String.format("%.2f", stats.getMin()),
-                    String.format("%.2f", stats.getAverage())
+                    String.format("%d", stats.getSum()),
+                    String.format("%d", stats.getMin()),
+                    String.format("%d", stats.getAverage())
                 );
             }
         }
